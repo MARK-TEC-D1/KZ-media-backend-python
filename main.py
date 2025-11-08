@@ -2,6 +2,9 @@ import os, requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
+import resend
+from fastapi import HTTPException
+
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=[os.getenv("CORS_ALLOW_ORIGIN","*")],
@@ -20,8 +23,25 @@ def health(): return {"ok": True}
 
 @app.post("/email")
 def send_email(m: Mail):
-    r = requests.post("https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {RESEND_API_KEY}",
-                 "Content-Type": "application/json"},
-        json={"from": EMAIL_FROM, "to": m.to, "subject": m.subject, "text": m.text})
-    return {"status": r.status_code, "ok": r.ok}
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="RESEND_API_KEY no configurada")
+    resend.api_key = api_key
+
+    sender = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
+    if not (m.text or m.html):
+        raise HTTPException(status_code=400, detail="Debes enviar 'text' o 'html'")
+
+    payload = {
+        "from": sender,
+        "to": [m.to],              # Resend espera lista
+        "subject": m.subject,
+        **({"html": m.html} if m.html else {"text": m.text}),
+    }
+
+    try:
+        r = resend.Emails.send(payload)  # devuelve dict con 'id'
+        return {"ok": True, "id": r.get("id")}
+    except Exception as e:
+        # Resend da mensajes útiles en el error
+        raise HTTPException(status_code=502, detail=f"Resend error: {e}")
