@@ -10,7 +10,7 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=[os.getenv("CORS_ALLOW_ORIGIN","*")],
                    allow_methods=["*"], allow_headers=["*"])
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY","re_N9fktzXT_MaNBuDwD6aCnhUboY4nFDvuS")
 EMAIL_FROM = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
 
 class Mail(BaseModel):
