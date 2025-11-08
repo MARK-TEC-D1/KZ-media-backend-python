@@ -41,7 +41,7 @@ def send_email(m: Mail):
         raise HTTPException(status_code=400, detail="Debes enviar 'text' o 'html'")
 
     payload = {
-        "from": sender,
+        "from": "onboarding@resend.dev",
         "to": [m.to],
         "subject": m.subject,
         **({"html": m.html} if m.html else {"text": m.text}),
