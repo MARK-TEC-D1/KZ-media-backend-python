@@ -23,9 +23,10 @@ def health(): return {"ok": True}
 
 @app.post("/email")
 def send_email(m: Mail):
-    api_key = os.getenv("RESEND_API_KEY")
+    api_key = "re_N9fktzXT_MaNBuDwD6aCnhUboY4nFDvuS"
+    print(api_key," BAGP")
     if not api_key:
-        raise HTTPException(status_code=500, detail="RESEND_API_KEY no configurada")
+        raise HTTPException(status_code=500, detail="RESEN_API_KEY no configurada")
     resend.api_key = api_key
 
     sender = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
