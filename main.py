@@ -21,12 +21,19 @@ class Mail(BaseModel):
 @app.get("/health")
 def health(): return {"ok": True}
 
+# ↑ imports igual
+
+class Mail(BaseModel):
+    to: EmailStr
+    subject: str
+    text: str | None = None
+    html: str | None = None
+
 @app.post("/email")
 def send_email(m: Mail):
     api_key = "re_N9fktzXT_MaNBuDwD6aCnhUboY4nFDvuS"
-    print(api_key," BAGP")
     if not api_key:
-        raise HTTPException(status_code=500, detail="RESEN_API_KEY no configurada")
+        raise HTTPException(status_code=500, detail="RESEND_API_KEY no configurada")
     resend.api_key = api_key
 
     sender = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
@@ -35,14 +42,14 @@ def send_email(m: Mail):
 
     payload = {
         "from": sender,
-        "to": [m.to],              # Resend espera lista
+        "to": [m.to],
         "subject": m.subject,
         **({"html": m.html} if m.html else {"text": m.text}),
     }
 
     try:
-        r = resend.Emails.send(payload)  # devuelve dict con 'id'
+        r = resend.Emails.send(payload)  # {'id': '...'}
         return {"ok": True, "id": r.get("id")}
     except Exception as e:
-        # Resend da mensajes útiles en el error
+        # Resend devuelve mensajes útiles (e.g., Invalid API key)
         raise HTTPException(status_code=502, detail=f"Resend error: {e}")
